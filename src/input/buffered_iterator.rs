@@ -72,3 +72,63 @@ where
         }
     }
 }
+
+pub struct PeekingIntoBufferedIterator<'a, T: Iterator> {
+    inner: &'a mut BufferedIterator<T>,
+    position: usize,
+}
+
+impl<'a, T> PeekingIntoBufferedIterator<'a, T>
+where
+    T: Iterator,
+{
+    pub fn new(target: &'a mut BufferedIterator<T>) -> Self {
+        PeekingIntoBufferedIterator {
+            inner: target,
+            position: 0,
+        }
+    }
+
+    pub fn position(&self) -> usize {
+        self.position
+    }
+
+    pub fn peek(&mut self, count: usize) -> impl Iterator<Item = &T::Item> {
+        self.inner.peek(count + self.position).skip(self.position)
+    }
+
+    pub fn peek_into<'b>(&'b mut self) -> PeekingIntoBufferedIterator<'b, T> {
+        PeekingIntoBufferedIterator {
+            inner: &mut self.inner,
+            position: self.position,
+        }
+    }
+
+    pub fn advance(&mut self, count: usize) {
+        self.position += count;
+    }
+}
+
+impl<'a, T> Iterator for PeekingIntoBufferedIterator<'a, T>
+where
+    T: Iterator,
+    T::Item: Copy,
+{
+    type Item = T::Item;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let index = self.position;
+
+        self.position += 1;
+
+        if index < self.inner.buffer.len() {
+            Some(self.inner.buffer[index])
+        } else if let Some(item) = self.inner.source.next() {
+            self.inner.buffer.push_back(item);
+            Some(item)
+        } else {
+            self.position -= 1;
+            None
+        }
+    }
+}
