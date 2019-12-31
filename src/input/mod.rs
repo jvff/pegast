@@ -10,6 +10,8 @@ pub trait Input {
     fn consume(&mut self, string: &str) -> bool;
     fn next(&mut self) -> Option<char>;
     fn peek(&mut self) -> Option<char>;
+    // TODO: Use generic associated types when available
+    fn peek_only<'a>(&'a mut self) -> Box<dyn Input + 'a>;
 }
 
 pub struct ConsumingInput<T: Iterator<Item = char>> {
@@ -91,6 +93,10 @@ where
     fn peek(&mut self) -> Option<char> {
         self.iterator.peek(1).next().cloned()
     }
+
+    fn peek_only<'a>(&'a mut self) -> Box<dyn Input + 'a> {
+        Box::new(PeekingInput::new(self.position, &mut self.iterator))
+    }
 }
 
 pub struct PeekingInput<'a, T: Iterator> {
@@ -166,6 +172,13 @@ where
     fn peek(&mut self) -> Option<char> {
         self.iterator.peek(1).next().cloned()
     }
+
+    fn peek_only<'a>(&'a mut self) -> Box<dyn Input + 'a> {
+        Box::new(PeekingInput {
+            iterator: self.iterator.peek_into(),
+            start_position: self.start_position,
+        })
+    }
 }
 
 impl<T> Input for Box<T>
@@ -198,5 +211,9 @@ where
 
     fn peek(&mut self) -> Option<char> {
         self.as_mut().peek()
+    }
+
+    fn peek_only<'a>(&'a mut self) -> Box<dyn Input + 'a> {
+        self.as_mut().peek_only()
     }
 }
