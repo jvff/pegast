@@ -1,6 +1,6 @@
 mod buffered_iterator;
 
-use self::buffered_iterator::BufferedIterator;
+use self::buffered_iterator::{BufferedIterator, PeekingIntoBufferedIterator};
 
 pub trait Input {
     fn position(&self) -> usize;
@@ -86,6 +86,81 @@ where
         }
 
         result
+    }
+
+    fn peek(&mut self) -> Option<char> {
+        self.iterator.peek(1).next().cloned()
+    }
+}
+
+pub struct PeekingInput<'a, T: Iterator> {
+    start_position: usize,
+    iterator: PeekingIntoBufferedIterator<'a, T>,
+}
+
+impl<'a, T> PeekingInput<'a, T>
+where
+    T: Iterator<Item = char>,
+{
+    pub fn new(start_position: usize, target: &'a mut BufferedIterator<T>) -> Self {
+        PeekingInput {
+            start_position,
+            iterator: PeekingIntoBufferedIterator::new(target),
+        }
+    }
+}
+
+impl<'i, T> Input for PeekingInput<'i, T>
+where
+    T: Iterator<Item = char>,
+{
+    fn position(&self) -> usize {
+        self.start_position + self.iterator.position()
+    }
+
+    fn advance(&mut self, amount: usize) {
+        self.iterator.advance(amount);
+    }
+
+    fn advance_to(&mut self, position: usize) {
+        assert!(
+            position >= self.position(),
+            "Attempt to advance input backwards"
+        );
+
+        self.iterator.advance(position - self.position());
+    }
+
+    fn check(&mut self, string: &str) -> bool {
+        let mut count = 0;
+
+        for (a, b) in string.chars().zip(self.iterator.peek(string.len())) {
+            if a != *b {
+                return false;
+            }
+
+            count += 1;
+        }
+
+        if count == string.len() {
+            true
+        } else {
+            false
+        }
+    }
+
+    fn consume(&mut self, string: &str) -> bool {
+        if self.check(string) {
+            self.advance(string.len());
+
+            true
+        } else {
+            false
+        }
+    }
+
+    fn next(&mut self) -> Option<char> {
+        self.iterator.next()
     }
 
     fn peek(&mut self) -> Option<char> {
