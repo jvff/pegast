@@ -1,3 +1,4 @@
 mod any;
+mod not;
 
-pub use self::any::Any;
+pub use self::{any::Any, not::Not};
