@@ -167,3 +167,36 @@ where
         self.iterator.peek(1).next().cloned()
     }
 }
+
+impl<T> Input for Box<T>
+where
+    T: Input + ?Sized,
+{
+    fn position(&self) -> usize {
+        self.as_ref().position()
+    }
+
+    fn advance(&mut self, amount: usize) {
+        self.as_mut().advance(amount)
+    }
+
+    fn advance_to(&mut self, position: usize) {
+        self.as_mut().advance_to(position)
+    }
+
+    fn check(&mut self, string: &str) -> bool {
+        self.as_mut().check(string)
+    }
+
+    fn consume(&mut self, string: &str) -> bool {
+        self.as_mut().consume(string)
+    }
+
+    fn next(&mut self) -> Option<char> {
+        self.as_mut().next()
+    }
+
+    fn peek(&mut self) -> Option<char> {
+        self.as_mut().peek()
+    }
+}
