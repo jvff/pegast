@@ -1,4 +1,5 @@
 pub mod input;
+pub mod rules;
 
 use {
     crate::input::Input,
