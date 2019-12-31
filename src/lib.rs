@@ -1,8 +1,12 @@
 pub mod input;
 
-use std::{
-    error::Error,
-    fmt::{self, Display, Formatter},
+use {
+    crate::input::Input,
+    std::{
+        borrow::Cow,
+        error::Error,
+        fmt::{self, Display, Formatter},
+    },
 };
 
 #[derive(Debug)]
@@ -33,3 +37,9 @@ impl Display for ParseError {
 }
 
 impl Error for ParseError {}
+
+pub trait PegAstNode: Sized {
+    fn parse(input: &mut impl Input) -> Result<Self, ParseError>;
+    fn parsed_string(&self) -> Cow<'_, str>;
+    fn expecting() -> Vec<String>;
+}
