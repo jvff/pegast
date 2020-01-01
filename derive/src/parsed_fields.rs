@@ -60,6 +60,14 @@ impl ParsedFields {
         })
     }
 
+    pub fn generate_parsed_string_body_for_enum_variants(&self) -> TokenStream {
+        self.generate_parsed_string_body(|field| {
+            let binding = &field.name;
+
+            quote! { #binding }
+        })
+    }
+
     pub fn generate_expecting_body(&self) -> TokenStream {
         let field_type = &self
             .fields
@@ -70,7 +78,7 @@ impl ParsedFields {
         quote! { <#field_type as PegAstNode>::expecting() }
     }
 
-    fn generate_pattern_bindings(&self) -> TokenStream {
+    pub fn generate_pattern_bindings(&self) -> TokenStream {
         let bindings = self.fields.iter().map(|field| &field.name);
 
         match self.field_type {
