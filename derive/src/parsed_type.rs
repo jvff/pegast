@@ -63,7 +63,7 @@ impl TypeData {
     pub fn generate_parse_body(&self) -> TokenStream {
         match self {
             TypeData::Enum(variants) => variants.generate_parse_body(),
-            TypeData::Struct(fields) => fields.generate_parse_body(),
+            TypeData::Struct(fields) => fields.generate_parse_body(quote! { Self }),
         }
     }
 

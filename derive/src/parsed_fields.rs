@@ -33,7 +33,7 @@ impl ParsedFields {
         }
     }
 
-    pub fn generate_parse_body(&self) -> TokenStream {
+    pub fn generate_parse_body(&self, self_name: TokenStream) -> TokenStream {
         let bindings = self.fields.iter().map(|field| &field.name);
         let types = self.fields.iter().map(|field| &field.field_type);
         let constructor = self.generate_pattern_bindings();
@@ -43,7 +43,7 @@ impl ParsedFields {
                 let mut peek_input = input.peek_only();
                 #( let #bindings = <#types as PegAstNode>::parse(&mut peek_input)?; )*
 
-                (peek_input.position(), Self #constructor)
+                (peek_input.position(), #self_name #constructor)
             };
 
             input.advance_to(new_position);

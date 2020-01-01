@@ -25,7 +25,22 @@ impl ParsedVariants {
     }
 
     pub fn generate_parse_body(&self) -> TokenStream {
-        todo!();
+        let variant_parsers =
+            self.fields
+                .iter()
+                .zip(&self.names)
+                .map(|(variant_fields, variant_name)| {
+                    variant_fields.generate_parse_body(quote! { Self::#variant_name })
+                });
+
+        quote! {
+            Err(())
+                #( .or_else(|_| -> Result<_, pegast::ParseError> { #variant_parsers }) )*
+                .or_else(|_| Err(pegast::ParseError {
+                    expected: Self::expecting(),
+                    position: input.position(),
+                }))
+        }
     }
 
     pub fn generate_parsed_string_body(&self) -> TokenStream {
