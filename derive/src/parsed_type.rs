@@ -1,16 +1,26 @@
 use {
+    crate::ParsedFields,
     proc_macro2::TokenStream,
     quote::quote,
-    syn::{DeriveInput, Ident},
+    syn::{Data, DeriveInput, Ident},
 };
 
 pub struct ParsedType {
     name: Ident,
+    fields: ParsedFields,
 }
 
 impl From<DeriveInput> for ParsedType {
     fn from(input: DeriveInput) -> Self {
-        ParsedType { name: input.ident }
+        let fields = match input.data {
+            Data::Struct(data) => ParsedFields::new(data.fields),
+            _ => panic!("Currently only structs can have PegAstNode derived"),
+        };
+
+        ParsedType {
+            name: input.ident,
+            fields,
+        }
     }
 }
 
