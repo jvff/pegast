@@ -33,6 +33,28 @@ impl ParsedFields {
         }
     }
 
+    pub fn generate_parsed_string_body(&self) -> TokenStream {
+        if self.fields.len() == 1 {
+            let member = &self
+                .fields
+                .first()
+                .expect("Missing first element in a vector of one element")
+                .member;
+
+            quote! { self.#member.parsed_string() }
+        } else {
+            let members = self.fields.iter().map(|field| &field.member);
+
+            quote! {
+                let mut string = String::new();
+
+                #( string.push_str(&self.#members.parsed_string()); )*
+
+                std::borrow::Cow::Owned(string)
+            }
+        }
+    }
+
     pub fn generate_expecting_body(&self) -> TokenStream {
         let field_type = &self
             .fields
