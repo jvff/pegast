@@ -1,6 +1,8 @@
 pub mod input;
 pub mod rules;
 
+#[cfg(feature = "derive")]
+pub use pegast_derive::PegAstNode;
 use {
     crate::input::Input,
     std::{
