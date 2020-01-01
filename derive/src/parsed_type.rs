@@ -27,6 +27,7 @@ impl From<DeriveInput> for ParsedType {
 impl ParsedType {
     pub fn generate_peg_ast_node_impl(self) -> TokenStream {
         let name = self.name;
+        let parse_body = self.fields.generate_parse_body();
         let parsed_string_body = self.fields.generate_parsed_string_body();
         let expecting_body = self.fields.generate_expecting_body();
 
@@ -35,7 +36,7 @@ impl ParsedType {
                 fn parse(
                     input: &mut impl pegast::input::Input,
                 ) -> Result<Self, pegast::ParseError> {
-                    todo!();
+                    #parse_body
                 }
 
                 fn parsed_string(&self) -> std::borrow::Cow<'_, str> {
