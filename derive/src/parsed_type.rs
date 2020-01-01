@@ -7,19 +7,14 @@ use {
 
 pub struct ParsedType {
     name: Ident,
-    fields: ParsedFields,
+    data: TypeData,
 }
 
 impl From<DeriveInput> for ParsedType {
     fn from(input: DeriveInput) -> Self {
-        let fields = match input.data {
-            Data::Struct(data) => ParsedFields::new(data.fields),
-            _ => panic!("Currently only structs can have PegAstNode derived"),
-        };
-
         ParsedType {
             name: input.ident,
-            fields,
+            data: TypeData::from(input.data),
         }
     }
 }
@@ -27,9 +22,9 @@ impl From<DeriveInput> for ParsedType {
 impl ParsedType {
     pub fn generate_peg_ast_node_impl(self) -> TokenStream {
         let name = self.name;
-        let parse_body = self.fields.generate_parse_body();
-        let parsed_string_body = self.fields.generate_parsed_string_body();
-        let expecting_body = self.fields.generate_expecting_body();
+        let parse_body = self.data.generate_parse_body();
+        let parsed_string_body = self.data.generate_parsed_string_body();
+        let expecting_body = self.data.generate_expecting_body();
 
         quote! {
             impl PegAstNode for #name {
@@ -47,6 +42,38 @@ impl ParsedType {
                     #expecting_body
                 }
             }
+        }
+    }
+}
+
+enum TypeData {
+    Struct(ParsedFields),
+}
+
+impl TypeData {
+    pub fn from(input_data: Data) -> Self {
+        match input_data {
+            Data::Enum(_) => todo!(),
+            Data::Struct(data) => TypeData::Struct(ParsedFields::new(data.fields)),
+            Data::Union(_) => panic!("Derive(PegAstNode) not supported on unions"),
+        }
+    }
+
+    pub fn generate_parse_body(&self) -> TokenStream {
+        match self {
+            TypeData::Struct(fields) => fields.generate_parse_body(),
+        }
+    }
+
+    pub fn generate_parsed_string_body(&self) -> TokenStream {
+        match self {
+            TypeData::Struct(fields) => fields.generate_parsed_string_body(),
+        }
+    }
+
+    pub fn generate_expecting_body(&self) -> TokenStream {
+        match self {
+            TypeData::Struct(fields) => fields.generate_expecting_body(),
         }
     }
 }
