@@ -1,6 +1,7 @@
 use {
     crate::ParsedFields,
     proc_macro2::TokenStream,
+    quote::quote,
     syn::{punctuated::Punctuated, Ident, Token, Variant},
 };
 
@@ -32,6 +33,17 @@ impl ParsedVariants {
     }
 
     pub fn generate_expecting_body(&self) -> TokenStream {
-        todo!();
+        let variant_expecting = self
+            .fields
+            .iter()
+            .map(|variant_fields| variant_fields.generate_expecting_body());
+
+        quote! {
+            let mut expecting = Vec::new();
+
+            #( expecting.extend(#variant_expecting); )*
+
+            expecting
+        }
     }
 }
