@@ -2,9 +2,10 @@ extern crate proc_macro;
 
 mod parsed_fields;
 mod parsed_type;
+mod parsed_variants;
 
 use {
-    self::{parsed_fields::ParsedFields, parsed_type::ParsedType},
+    self::{parsed_fields::ParsedFields, parsed_type::ParsedType, parsed_variants::ParsedVariants},
     proc_macro::TokenStream,
     syn::{parse_macro_input, DeriveInput},
 };

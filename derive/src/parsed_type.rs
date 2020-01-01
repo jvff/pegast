@@ -1,5 +1,5 @@
 use {
-    crate::ParsedFields,
+    crate::{ParsedFields, ParsedVariants},
     proc_macro2::TokenStream,
     quote::quote,
     syn::{Data, DeriveInput, Ident},
@@ -47,13 +47,14 @@ impl ParsedType {
 }
 
 enum TypeData {
+    Enum(ParsedVariants),
     Struct(ParsedFields),
 }
 
 impl TypeData {
     pub fn from(input_data: Data) -> Self {
         match input_data {
-            Data::Enum(_) => todo!(),
+            Data::Enum(data) => TypeData::Enum(ParsedVariants::new(data.variants)),
             Data::Struct(data) => TypeData::Struct(ParsedFields::new(data.fields)),
             Data::Union(_) => panic!("Derive(PegAstNode) not supported on unions"),
         }
@@ -61,18 +62,21 @@ impl TypeData {
 
     pub fn generate_parse_body(&self) -> TokenStream {
         match self {
+            TypeData::Enum(variants) => variants.generate_parse_body(),
             TypeData::Struct(fields) => fields.generate_parse_body(),
         }
     }
 
     pub fn generate_parsed_string_body(&self) -> TokenStream {
         match self {
+            TypeData::Enum(variants) => variants.generate_parsed_string_body(),
             TypeData::Struct(fields) => fields.generate_parsed_string_body(),
         }
     }
 
     pub fn generate_expecting_body(&self) -> TokenStream {
         match self {
+            TypeData::Enum(variants) => variants.generate_expecting_body(),
             TypeData::Struct(fields) => fields.generate_expecting_body(),
         }
     }
