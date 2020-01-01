@@ -52,26 +52,12 @@ impl ParsedFields {
         }
     }
 
-    pub fn generate_parsed_string_body(&self) -> TokenStream {
-        if self.fields.len() == 1 {
-            let member = &self
-                .fields
-                .first()
-                .expect("Missing first element in a vector of one element")
-                .member;
+    pub fn generate_parsed_string_body_for_structs(&self) -> TokenStream {
+        self.generate_parsed_string_body(|field| {
+            let member = &field.member;
 
-            quote! { self.#member.parsed_string() }
-        } else {
-            let members = self.fields.iter().map(|field| &field.member);
-
-            quote! {
-                let mut string = String::new();
-
-                #( string.push_str(&self.#members.parsed_string()); )*
-
-                std::borrow::Cow::Owned(string)
-            }
-        }
+            quote! { self.#member }
+        })
     }
 
     pub fn generate_expecting_body(&self) -> TokenStream {
@@ -90,6 +76,31 @@ impl ParsedFields {
         match self.field_type {
             FieldType::Named => quote! { { #( #bindings, )* } },
             FieldType::Unnamed => quote! { ( #( #bindings, )* ) },
+        }
+    }
+
+    fn generate_parsed_string_body(
+        &self,
+        field_accessor: impl Fn(&ParsedField) -> TokenStream,
+    ) -> TokenStream {
+        if self.fields.len() == 1 {
+            let accessor = &self
+                .fields
+                .first()
+                .map(field_accessor)
+                .expect("Missing first element in a vector of one element");
+
+            quote! { #accessor.parsed_string() }
+        } else {
+            let accessors = self.fields.iter().map(field_accessor);
+
+            quote! {
+                let mut string = String::new();
+
+                #( string.push_str(&#accessors.parsed_string()); )*
+
+                std::borrow::Cow::Owned(string)
+            }
         }
     }
 }
