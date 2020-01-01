@@ -27,6 +27,7 @@ impl From<DeriveInput> for ParsedType {
 impl ParsedType {
     pub fn generate_peg_ast_node_impl(self) -> TokenStream {
         let name = self.name;
+        let expecting_body = self.fields.generate_expecting_body();
 
         quote! {
             impl PegAstNode for #name {
@@ -41,7 +42,7 @@ impl ParsedType {
                 }
 
                 fn expecting() -> Vec<String> {
-                    todo!();
+                    #expecting_body
                 }
             }
         }

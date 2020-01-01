@@ -1,4 +1,8 @@
-use syn::{spanned::Spanned, Field, Fields, Ident, Index, Member, Type};
+use {
+    proc_macro2::TokenStream,
+    quote::quote,
+    syn::{spanned::Spanned, Field, Fields, Ident, Index, Member, Type},
+};
 
 pub struct ParsedFields {
     fields: Vec<ParsedField>,
@@ -27,6 +31,16 @@ impl ParsedFields {
                 field_type: FieldType::Unnamed,
             },
         }
+    }
+
+    pub fn generate_expecting_body(&self) -> TokenStream {
+        let field_type = &self
+            .fields
+            .first()
+            .expect("Missing first element in fields")
+            .field_type;
+
+        quote! { <#field_type as PegAstNode>::expecting() }
     }
 }
 
