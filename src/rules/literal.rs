@@ -28,6 +28,10 @@ impl<V: LiteralValue> PegAstNode for Literal<V> {
         Cow::Borrowed(V::LITERAL)
     }
 
+    fn parsed_string_length(&self) -> usize {
+        V::LITERAL.len()
+    }
+
     fn expecting() -> Vec<String> {
         vec![V::LITERAL.to_owned()]
     }
