@@ -24,6 +24,10 @@ impl PegAstNode for Any {
         Cow::Owned(iter::once(self.0).collect())
     }
 
+    fn parsed_string_length(&self) -> usize {
+        1
+    }
+
     fn expecting() -> Vec<String> {
         vec!["any character".to_owned()]
     }
