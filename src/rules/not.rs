@@ -27,6 +27,10 @@ impl<R: PegAstNode> PegAstNode for Not<R> {
         Cow::Borrowed("")
     }
 
+    fn parsed_string_length(&self) -> usize {
+        0
+    }
+
     fn expecting() -> Vec<String> {
         let mut expecting = "not ".to_owned();
         let not_expecting = R::expecting();
