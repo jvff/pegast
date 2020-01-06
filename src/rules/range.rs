@@ -60,6 +60,10 @@ impl<V: RangeValue> PegAstNode for Range<V> {
         Cow::Owned(self.0.to_string())
     }
 
+    fn parsed_string_length(&self) -> usize {
+        1
+    }
+
     fn expecting() -> Vec<String> {
         vec![format!(
             "a character between '{}' and '{}'",
