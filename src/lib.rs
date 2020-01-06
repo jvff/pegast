@@ -9,6 +9,7 @@ use {
         borrow::Cow,
         error::Error,
         fmt::{self, Display, Formatter},
+        ops::Deref,
     },
 };
 
@@ -45,4 +46,23 @@ pub trait PegAstNode: Sized {
     fn parse(input: &mut impl Input) -> Result<Self, ParseError>;
     fn parsed_string(&self) -> Cow<'_, str>;
     fn expecting() -> Vec<String>;
+}
+
+impl<T> PegAstNode for Box<T>
+where
+    T: PegAstNode,
+{
+    fn parse(input: &mut impl Input) -> Result<Self, ParseError> {
+        let inner = T::parse(input)?;
+
+        Ok(Box::new(inner))
+    }
+
+    fn parsed_string(&self) -> Cow<'_, str> {
+        self.deref().parsed_string()
+    }
+
+    fn expecting() -> Vec<String> {
+        T::expecting()
+    }
 }
