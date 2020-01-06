@@ -36,6 +36,14 @@ macro_rules! tuple_impl {
                 Cow::Owned(string)
             }
 
+            fn parsed_string_length(&self) -> usize {
+                let mut sum = 0;
+
+                $( sum += self.$field.parsed_string_length(); )*
+
+                sum
+            }
+
             fn expecting() -> Vec<String> {
                 $first_type::expecting()
             }
