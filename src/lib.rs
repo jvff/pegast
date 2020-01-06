@@ -46,6 +46,10 @@ pub trait PegAstNode: Sized {
     fn parse(input: &mut impl Input) -> Result<Self, ParseError>;
     fn parsed_string(&self) -> Cow<'_, str>;
     fn expecting() -> Vec<String>;
+
+    fn parsed_string_length(&self) -> usize {
+        self.parsed_string().len()
+    }
 }
 
 impl<T> PegAstNode for Box<T>
@@ -60,6 +64,10 @@ where
 
     fn parsed_string(&self) -> Cow<'_, str> {
         self.deref().parsed_string()
+    }
+
+    fn parsed_string_length(&self) -> usize {
+        self.deref().parsed_string_length()
     }
 
     fn expecting() -> Vec<String> {
