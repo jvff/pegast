@@ -68,6 +68,22 @@ impl ParsedFields {
         })
     }
 
+    pub fn generate_parsed_string_length_body_for_structs(&self) -> TokenStream {
+        self.generate_parsed_string_length_body(|field| {
+            let member = &field.member;
+
+            quote! { self.#member }
+        })
+    }
+
+    pub fn generate_parsed_string_length_body_for_enum_variants(&self) -> TokenStream {
+        self.generate_parsed_string_length_body(|field| {
+            let binding = &field.name;
+
+            quote! { #binding }
+        })
+    }
+
     pub fn generate_expecting_body(&self) -> TokenStream {
         let field_type = &self
             .fields
@@ -109,6 +125,21 @@ impl ParsedFields {
 
                 std::borrow::Cow::Owned(string)
             }
+        }
+    }
+
+    fn generate_parsed_string_length_body(
+        &self,
+        field_accessor: impl Fn(&ParsedField) -> TokenStream,
+    ) -> TokenStream {
+        let accessors = self.fields.iter().map(field_accessor);
+
+        quote! {
+            let mut count = 0;
+
+            #( count += #accessors.parsed_string_length(); )*
+
+            count
         }
     }
 }

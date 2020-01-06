@@ -24,6 +24,7 @@ impl ParsedType {
         let name = self.name;
         let parse_body = self.data.generate_parse_body();
         let parsed_string_body = self.data.generate_parsed_string_body();
+        let parsed_string_length_body = self.data.generate_parsed_string_length_body();
         let expecting_body = self.data.generate_expecting_body();
 
         quote! {
@@ -36,6 +37,10 @@ impl ParsedType {
 
                 fn parsed_string(&self) -> std::borrow::Cow<'_, str> {
                     #parsed_string_body
+                }
+
+                fn parsed_string_length(&self) -> usize {
+                    #parsed_string_length_body
                 }
 
                 fn expecting() -> Vec<String> {
@@ -71,6 +76,13 @@ impl TypeData {
         match self {
             TypeData::Enum(variants) => variants.generate_parsed_string_body(),
             TypeData::Struct(fields) => fields.generate_parsed_string_body_for_structs(),
+        }
+    }
+
+    pub fn generate_parsed_string_length_body(&self) -> TokenStream {
+        match self {
+            TypeData::Enum(variants) => variants.generate_parsed_string_length_body(),
+            TypeData::Struct(fields) => fields.generate_parsed_string_length_body_for_structs(),
         }
     }
 

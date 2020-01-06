@@ -61,6 +61,23 @@ impl ParsedVariants {
         }
     }
 
+    pub fn generate_parsed_string_length_body(&self) -> TokenStream {
+        let variant_names = &self.names;
+        let bindings = self
+            .fields
+            .iter()
+            .map(|variant_fields| variant_fields.generate_pattern_bindings());
+        let variant_parsed_string_lengths = self.fields.iter().map(|variant_fields| {
+            variant_fields.generate_parsed_string_length_body_for_enum_variants()
+        });
+
+        quote! {
+            match self {
+                #( Self::#variant_names #bindings => { #variant_parsed_string_lengths } )*
+            }
+        }
+    }
+
     pub fn generate_expecting_body(&self) -> TokenStream {
         let variant_expecting = self
             .fields
