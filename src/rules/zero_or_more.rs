@@ -18,6 +18,10 @@ impl<R: PegAstNode> PegAstNode for Vec<R> {
         Cow::Owned(string)
     }
 
+    fn parsed_string_length(&self) -> usize {
+        self.iter().map(PegAstNode::parsed_string_length).sum()
+    }
+
     fn expecting() -> Vec<String> {
         let mut expecting = R::expecting();
 
