@@ -47,6 +47,10 @@ where
         }
     }
 
+    fn parsed_string_length(&self) -> usize {
+        self.head.parsed_string_length() + self.tail.parsed_string_length()
+    }
+
     fn expecting() -> Vec<String> {
         T::expecting()
     }
