@@ -11,5 +11,5 @@ mod zero_or_more;
 
 pub use self::{
     any::Any, delimitted::Delimitted, literal::Literal, not::Not, one_or_more::OneOrMore,
-    range::Range,
+    range::Range, sets::SetOf,
 };
