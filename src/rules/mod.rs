@@ -10,6 +10,11 @@ pub mod sets;
 mod zero_or_more;
 
 pub use self::{
-    any::Any, delimitted::Delimitted, literal::Literal, not::Not, one_or_more::OneOrMore,
-    range::Range, sets::SetOf,
+    any::Any,
+    delimitted::Delimitted,
+    literal::Literal,
+    not::Not,
+    one_or_more::OneOrMore,
+    range::Range,
+    sets::{DelimittedSetOf, SetOf},
 };
