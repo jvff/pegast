@@ -1,5 +1,5 @@
 use {
-    crate::ParsedFields,
+    crate::{ParsedAttributes, ParsedFields},
     proc_macro2::TokenStream,
     quote::quote,
     syn::{punctuated::Punctuated, Ident, Token, Variant},
@@ -8,6 +8,7 @@ use {
 pub struct ParsedVariant {
     pub name: Ident,
     pub fields: ParsedFields,
+    pub attributes: ParsedAttributes,
 }
 
 impl From<Variant> for ParsedVariant {
@@ -15,6 +16,7 @@ impl From<Variant> for ParsedVariant {
         ParsedVariant {
             name: variant.ident,
             fields: ParsedFields::new(variant.fields),
+            attributes: ParsedAttributes::from(variant.attrs),
         }
     }
 }
@@ -44,6 +46,26 @@ impl ParsedVariants {
         self.variants
             .iter()
             .map(|variant| variant.fields.generate_pattern_bindings())
+    }
+
+    pub fn generate_min_repetitions(&self) -> impl Iterator<Item = TokenStream> + '_ {
+        self.variants.iter().map(|variant| {
+            if let Some(min_repetitions) = variant.attributes.get_value("min") {
+                quote! { #min_repetitions }
+            } else {
+                quote! { 0 }
+            }
+        })
+    }
+
+    pub fn generate_max_repetitions(&self) -> impl Iterator<Item = TokenStream> + '_ {
+        self.variants.iter().map(|variant| {
+            if let Some(max_repetitions) = variant.attributes.get_value("max") {
+                quote! { Some(#max_repetitions) }
+            } else {
+                quote! { None }
+            }
+        })
     }
 
     pub fn generate_parse_body(&self) -> TokenStream {

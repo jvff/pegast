@@ -60,6 +60,8 @@ impl ParsedType {
             .expect("SetEntries can only be derived for enums");
         let variant_names = variants.names().collect::<Vec<_>>();
         let variant_bindings = variants.generate_ignoring_pattern_bindings();
+        let variant_min_repetitions = variants.generate_min_repetitions();
+        let variant_max_repetitions = variants.generate_max_repetitions();
 
         quote! {
             impl pegast::rules::sets::SetEntries for #name {
@@ -83,13 +85,13 @@ impl ParsedType {
 
                 fn min_repetitions(entry_id: Self::EntryId) -> usize {
                     match entry_id {
-                        #( #entry_id_name::#variant_names => 0, )*
+                        #( #entry_id_name::#variant_names => #variant_min_repetitions, )*
                     }
                 }
 
                 fn max_repetitions(entry_id: Self::EntryId) -> Option<usize> {
                     match entry_id {
-                        #( #entry_id_name::#variant_names => None, )*
+                        #( #entry_id_name::#variant_names => #variant_max_repetitions, )*
                     }
                 }
             }
