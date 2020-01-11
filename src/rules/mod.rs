@@ -6,6 +6,7 @@ mod not;
 mod one_or_more;
 mod optional;
 pub mod range;
+pub mod sets;
 mod zero_or_more;
 
 pub use self::{
