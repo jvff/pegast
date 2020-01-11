@@ -5,33 +5,49 @@ use {
     syn::{punctuated::Punctuated, Ident, Token, Variant},
 };
 
+pub struct ParsedVariant {
+    pub name: Ident,
+    pub fields: ParsedFields,
+}
+
+impl From<Variant> for ParsedVariant {
+    fn from(variant: Variant) -> Self {
+        ParsedVariant {
+            name: variant.ident,
+            fields: ParsedFields::new(variant.fields),
+        }
+    }
+}
+
 pub struct ParsedVariants {
-    names: Vec<Ident>,
-    fields: Vec<ParsedFields>,
+    variants: Vec<ParsedVariant>,
 }
 
 impl ParsedVariants {
     pub fn new(variants: Punctuated<Variant, Token![,]>) -> Self {
-        let count = variants.iter().count();
-        let mut names = Vec::with_capacity(count);
-        let mut fields = Vec::with_capacity(count);
+        let variants = variants.into_iter().map(ParsedVariant::from).collect();
 
-        for variant in variants {
-            names.push(variant.ident);
-            fields.push(ParsedFields::new(variant.fields));
-        }
+        ParsedVariants { variants }
+    }
 
-        ParsedVariants { names, fields }
+    pub fn names(&self) -> impl Iterator<Item = &Ident> + '_ {
+        self.variants.iter().map(|variant| &variant.name)
+    }
+
+    pub fn generate_pattern_bindings(&self) -> impl Iterator<Item = TokenStream> + '_ {
+        self.variants
+            .iter()
+            .map(|variant| variant.fields.generate_pattern_bindings())
     }
 
     pub fn generate_parse_body(&self) -> TokenStream {
-        let variant_parsers =
-            self.fields
-                .iter()
-                .zip(&self.names)
-                .map(|(variant_fields, variant_name)| {
-                    variant_fields.generate_parse_body(quote! { Self::#variant_name })
-                });
+        let variant_parsers = self.variants.iter().map(|variant| {
+            let variant_name = &variant.name;
+
+            variant
+                .fields
+                .generate_parse_body(quote! { Self::#variant_name })
+        });
 
         quote! {
             Err(())
@@ -44,15 +60,13 @@ impl ParsedVariants {
     }
 
     pub fn generate_parsed_string_body(&self) -> TokenStream {
-        let variant_names = &self.names;
-        let bindings = self
-            .fields
-            .iter()
-            .map(|variant_fields| variant_fields.generate_pattern_bindings());
-        let variant_parsed_strings = self
-            .fields
-            .iter()
-            .map(|variant_fields| variant_fields.generate_parsed_string_body_for_enum_variants());
+        let variant_names = self.names();
+        let bindings = self.generate_pattern_bindings();
+        let variant_parsed_strings = self.variants.iter().map(|variant| {
+            variant
+                .fields
+                .generate_parsed_string_body_for_enum_variants()
+        });
 
         quote! {
             match self {
@@ -62,13 +76,12 @@ impl ParsedVariants {
     }
 
     pub fn generate_parsed_string_length_body(&self) -> TokenStream {
-        let variant_names = &self.names;
-        let bindings = self
-            .fields
-            .iter()
-            .map(|variant_fields| variant_fields.generate_pattern_bindings());
-        let variant_parsed_string_lengths = self.fields.iter().map(|variant_fields| {
-            variant_fields.generate_parsed_string_length_body_for_enum_variants()
+        let variant_names = self.names();
+        let bindings = self.generate_pattern_bindings();
+        let variant_parsed_string_lengths = self.variants.iter().map(|variant| {
+            variant
+                .fields
+                .generate_parsed_string_length_body_for_enum_variants()
         });
 
         quote! {
@@ -80,9 +93,9 @@ impl ParsedVariants {
 
     pub fn generate_expecting_body(&self) -> TokenStream {
         let variant_expecting = self
-            .fields
+            .variants
             .iter()
-            .map(|variant_fields| variant_fields.generate_expecting_body());
+            .map(|variant| variant.fields.generate_expecting_body());
 
         quote! {
             let mut expecting = Vec::new();
