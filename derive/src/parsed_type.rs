@@ -49,6 +49,57 @@ impl ParsedType {
             }
         }
     }
+
+    pub fn generate_set_entries_impl(self) -> TokenStream {
+        let name = self.name;
+        let entry_id_name = Ident::new(&format!("{}SetEntryId", name), name.span());
+
+        let variants = self
+            .data
+            .variants()
+            .expect("SetEntries can only be derived for enums");
+        let variant_names = variants.names().collect::<Vec<_>>();
+        let variant_bindings = variants.generate_ignoring_pattern_bindings();
+
+        quote! {
+            impl pegast::rules::sets::SetEntries for #name {
+                type EntryId = #entry_id_name;
+
+                fn all_entry_ids() -> &'static [Self::EntryId] {
+                    &[
+                        #( #entry_id_name :: #variant_names, )*
+                    ]
+                }
+
+                fn entry_id(&self) -> Self::EntryId {
+                    match self {
+                        #(
+                            Self::#variant_names #variant_bindings => {
+                                #entry_id_name :: #variant_names
+                            }
+                        )*
+                    }
+                }
+
+                fn min_repetitions(entry_id: Self::EntryId) -> usize {
+                    match entry_id {
+                        #( #entry_id_name::#variant_names => 0, )*
+                    }
+                }
+
+                fn max_repetitions(entry_id: Self::EntryId) -> Option<usize> {
+                    match entry_id {
+                        #( #entry_id_name::#variant_names => None, )*
+                    }
+                }
+            }
+
+            #[derive(Clone, Copy, Debug, Eq, PartialEq, std::hash::Hash)]
+            pub enum #entry_id_name {
+                #( #variant_names, )*
+            }
+        }
+    }
 }
 
 enum TypeData {
@@ -62,6 +113,13 @@ impl TypeData {
             Data::Enum(data) => TypeData::Enum(ParsedVariants::new(data.variants)),
             Data::Struct(data) => TypeData::Struct(ParsedFields::new(data.fields)),
             Data::Union(_) => panic!("Derive(PegAstNode) not supported on unions"),
+        }
+    }
+
+    pub fn variants(self) -> Option<ParsedVariants> {
+        match self {
+            TypeData::Enum(variants) => Some(variants),
+            _ => None,
         }
     }
 

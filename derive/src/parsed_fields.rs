@@ -94,6 +94,13 @@ impl ParsedFields {
         quote! { <#field_type as PegAstNode>::expecting() }
     }
 
+    pub fn generate_ignoring_pattern_bindings(&self) -> TokenStream {
+        match self.field_type {
+            FieldType::Named => quote! { { .. } },
+            FieldType::Unnamed => quote! { (..) },
+        }
+    }
+
     pub fn generate_pattern_bindings(&self) -> TokenStream {
         let bindings = self.fields.iter().map(|field| &field.name);
 

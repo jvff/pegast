@@ -17,3 +17,11 @@ pub fn derive_peg_ast(input: TokenStream) -> TokenStream {
 
     TokenStream::from(parsed_type.generate_peg_ast_node_impl())
 }
+
+#[proc_macro_derive(SetEntries)]
+pub fn derive_set_entries(input: TokenStream) -> TokenStream {
+    let parsed_input = parse_macro_input!(input as DeriveInput);
+    let parsed_type = ParsedType::from(parsed_input);
+
+    TokenStream::from(parsed_type.generate_set_entries_impl())
+}

@@ -1,8 +1,6 @@
 pub mod input;
 pub mod rules;
 
-#[cfg(feature = "derive")]
-pub use pegast_derive::PegAstNode;
 use {
     crate::input::Input,
     std::{
@@ -11,6 +9,11 @@ use {
         fmt::{self, Display, Formatter},
         ops::Deref,
     },
+};
+#[cfg(feature = "derive")]
+pub use {
+    crate::rules::sets::SetEntries,
+    pegast_derive::{PegAstNode, SetEntries},
 };
 
 #[derive(Debug)]

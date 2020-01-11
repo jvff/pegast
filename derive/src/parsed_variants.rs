@@ -34,6 +34,12 @@ impl ParsedVariants {
         self.variants.iter().map(|variant| &variant.name)
     }
 
+    pub fn generate_ignoring_pattern_bindings(&self) -> impl Iterator<Item = TokenStream> + '_ {
+        self.variants
+            .iter()
+            .map(|variant| variant.fields.generate_ignoring_pattern_bindings())
+    }
+
     pub fn generate_pattern_bindings(&self) -> impl Iterator<Item = TokenStream> + '_ {
         self.variants
             .iter()
