@@ -10,6 +10,28 @@ pub struct DelimittedSetOf<S: SetEntries, D: PegAstNode> {
     delimitters: Vec<D>,
 }
 
+impl<S, D> DelimittedSetOf<S, D>
+where
+    S: SetEntries,
+    D: PegAstNode,
+{
+    pub fn items(&self) -> impl Iterator<Item = &S> {
+        self.items.iter()
+    }
+
+    pub fn items_mut(&mut self) -> impl Iterator<Item = &mut S> {
+        self.items.iter_mut()
+    }
+
+    pub fn delimitters(&self) -> impl Iterator<Item = &D> {
+        self.delimitters.iter()
+    }
+
+    pub fn delimitters_mut(&mut self) -> impl Iterator<Item = &mut D> {
+        self.delimitters.iter_mut()
+    }
+}
+
 impl<S, D> PegAstNode for DelimittedSetOf<S, D>
 where
     S: SetEntries,
