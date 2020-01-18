@@ -10,8 +10,24 @@ pub struct Delimitted<T, D> {
 }
 
 impl<T, D> Delimitted<T, D> {
+    pub fn head_item(&self) -> &T {
+        &self.head
+    }
+
+    pub fn head_item_mut(&mut self) -> &mut T {
+        &mut self.head
+    }
+
+    pub fn tail_items(&self) -> impl Iterator<Item = &T> {
+        self.tail.iter().map(|(_, item)| item)
+    }
+
+    pub fn tail_items_mut(&mut self) -> impl Iterator<Item = &mut T> {
+        self.tail.iter_mut().map(|(_, item)| item)
+    }
+
     pub fn items(&self) -> impl Iterator<Item = &T> {
-        iter::once(&self.head).chain(self.tail.iter().map(|(_, item)| item))
+        iter::once(&self.head).chain(self.tail_items())
     }
 
     pub fn items_mut(&mut self) -> impl Iterator<Item = &mut T> {
