@@ -1,5 +1,5 @@
 use {
-    crate::{ParsedFields, ParsedVariants},
+    crate::{ParsedFields, ParsedGenerics, ParsedVariants},
     proc_macro2::TokenStream,
     quote::quote,
     syn::{Data, DeriveInput, Ident},
@@ -7,6 +7,7 @@ use {
 
 pub struct ParsedType {
     name: Ident,
+    generics: ParsedGenerics,
     data: TypeData,
 }
 
@@ -14,6 +15,7 @@ impl From<DeriveInput> for ParsedType {
     fn from(input: DeriveInput) -> Self {
         ParsedType {
             name: input.ident,
+            generics: ParsedGenerics::from(input.generics),
             data: TypeData::from(input.data),
         }
     }
@@ -22,13 +24,18 @@ impl From<DeriveInput> for ParsedType {
 impl ParsedType {
     pub fn generate_peg_ast_node_impl(self) -> TokenStream {
         let name = self.name;
+        let impl_generics = self.generics.impl_generics();
+        let type_parameters = self.generics.type_parameters();
+        let where_clause = self.generics.where_clause();
         let parse_body = self.data.generate_parse_body();
         let parsed_string_body = self.data.generate_parsed_string_body();
         let parsed_string_length_body = self.data.generate_parsed_string_length_body();
         let expecting_body = self.data.generate_expecting_body();
 
         quote! {
-            impl PegAstNode for #name {
+            impl #impl_generics PegAstNode for #name #type_parameters
+            #where_clause
+            {
                 fn parse(
                     input: &mut impl pegast::input::Input,
                 ) -> Result<Self, pegast::ParseError> {
