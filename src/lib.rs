@@ -13,7 +13,7 @@ use {
 #[cfg(feature = "derive")]
 pub use {
     crate::rules::sets::SetEntries,
-    pegast_derive::{PegAstNode, SetEntries},
+    pegast_derive::{FromStr, PegAstNode, SetEntries},
 };
 
 #[derive(Debug)]

@@ -109,6 +109,27 @@ impl ParsedType {
             }
         }
     }
+
+    pub fn generate_from_str_impl(self) -> TokenStream {
+        let name = self.name;
+        let impl_generics = self.generics.impl_generics();
+        let type_parameters = self.generics.type_parameters();
+        let where_clause = self.generics.where_clause();
+
+        quote! {
+            impl #impl_generics std::str::FromStr for #name #type_parameters
+            #where_clause
+            {
+                type Err = pegast::ParseError;
+
+                fn from_str(string: &str) -> Result<Self, Self::Err> {
+                    let mut input = pegast::input::ConsumingInput::new(string.chars());
+
+                    <Self as pegast::PegAstNode>::parse(&mut input)
+                }
+            }
+        }
+    }
 }
 
 enum TypeData {
